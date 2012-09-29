@@ -20,12 +20,14 @@
  * John K. Grant
  * Erik Johnson
  */
+
 /**
  * Description: Modified to integrate with VR ToolKits.
  * Author: Patrick O'Leary
- * Date: April 12, 2010
+ * Date: September 29, 2012
  *
  */
+
 #include <dtABC/application.h>
 
 #include <osgViewer/CompositeViewer>
@@ -86,6 +88,7 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+
 /**
  * Description: Application - Original Constructor.
  *
@@ -93,8 +96,9 @@ public:
  * @param win - dtCore::DeltaWin* the DeltaWin
  * Modified to set enableVRToolKit to false
  * Author: Patrick O'Leary
- * Date: April 12, 2010
+ * Date: September 29, 2012
  */
+
 Application::Application(const std::string& configFilename, dtCore::DeltaWin* win)
    : BaseClass("Application")
    , mFirstFrame(true)
@@ -144,8 +148,9 @@ Application::Application(const std::string& configFilename, dtCore::DeltaWin* wi
  * @param win - dtCore::DeltaWin* the DeltaWin
  * Created
  * Author: Patrick O'Leary
- * Date: April 12, 2010
+ * Date: September 29, 2012
  */
+
 Application::Application(bool _enableVRToolKit, const std::string& configFilename, dtCore::DeltaWin* win)
    : BaseClass("Application")
    , mFirstFrame(true)
@@ -186,6 +191,7 @@ Application::Application(bool _enableVRToolKit, const std::string& configFilenam
       CreateInstances(GetDefaultConfigData());
    }
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Config()
 {
@@ -295,6 +301,7 @@ void Application::EventTraversal(const double deltaSimTime)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
 /**
  * Description: Frame - Advances the clock (except on the first frame) and does three
  *                      traversals, event, update, and render..
@@ -302,18 +309,37 @@ void Application::EventTraversal(const double deltaSimTime)
  * @param deltaSimTime - const double deltaSimTime change in simulation time.
  * Modified to set enableVRToolKit to false
  * Author: Patrick O'Leary
- * Date: April 12, 2010
+ * Date: September 29, 2012
  */
+
 void Application::Frame(const double deltaSimTime)
 {
    if(!mCompositeViewer->done())
    {
       bool singleThreaded = mCompositeViewer->getThreadingModel() == osgViewer::ViewerBase::SingleThreaded;
+
+
       //NOTE: The OSG frame() advances the clock and does three traversals, event, update, and render.
       //We are moving the event traversal to be its own message so we can reliably accept input during the
       //typical Delta3D update of PreFrame().  The only exception to this is that we need
       if(mFirstFrame)
       {
+
+#ifndef MULTITHREAD_FIX_HACK_BREAKS_CEGUI
+         dtCore::ObserverPtr<osgViewer::GraphicsWindow> gw;
+         if (GetWindow() != NULL)
+         {
+            gw = GetWindow()->GetOsgViewerGraphicsWindow();
+         }
+
+         if (!singleThreaded && gw.valid() && gw->isRealized())
+         {
+            gw->releaseContext();
+         }
+#endif
+
+         if (singleThreaded) { GetCompositeViewer()->setReleaseContextAtEndOfFrameHint(false); }
+         mCompositeViewer->setUpThreading();
          mCompositeViewer->frame(dtCore::System::GetInstance().GetSimTimeSinceStartup());
          mFirstFrame = false;
       }
@@ -429,6 +455,7 @@ bool Application::MouseScrolled(const dtCore::Mouse* mouse, int delta)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
 /**
  * Description: CreateInstances - Create the instances and hook-up the default connections.
  *                                The instance attributes may be overwritten using a config file.
@@ -436,8 +463,9 @@ bool Application::MouseScrolled(const dtCore::Mouse* mouse, int delta)
  * @param data - const ApplicationConfigData&
  * Modified
  * Author: Patrick O'Leary
- * Date: April 12, 2010
+ * Date: September 29, 2012
  */
+
 void Application::CreateInstances(const ApplicationConfigData& data)
 {
    //create the instances and hook-up the default
@@ -551,7 +579,7 @@ void Application::SetConfigPropertyValue(const std::string& name, const std::str
    if (!mConfigProperties.insert(std::make_pair(name, value)).second)
    {
       AppConfigPropertyMap::iterator i = mConfigProperties.find(name);
-      /// "i" can't be the "end()" because the insert returned false, meaning it does have that key.
+      // "i" can't be the "end()" because the insert returned false, meaning it does have that key.
       i->second = value;
    }
 }
@@ -560,6 +588,12 @@ void Application::SetConfigPropertyValue(const std::string& name, const std::str
 void Application::RemoveConfigPropertyValue(const std::string& name)
 {
    mConfigProperties.erase(name);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+bool dtABC::Application::IsConfigPropertyDefined(const std::string& name) const
+{
+   return mConfigProperties.find(name) != mConfigProperties.end();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -574,7 +608,7 @@ bool Application::ParseConfigFile(const std::string& file, ApplicationConfigHand
    if (foundPath.empty())
    {
       LOG_WARNING("Application: Can't find config file, " + file + ", using defaults instead.");
-      return false;        
+      return false;
    }
 
    dtUtil::XercesParser parser;
@@ -659,8 +693,9 @@ ApplicationConfigData Application::GetDefaultConfigData()
  *
  * @return osg::Group* - root node of delta3d composite viewer.
  * Author: Patrick O'Leary
- * Date: April 12, 2010
+ * Date: September 29, 2012
  */
+
 osg::Group* Application::GetRootNode(void) {
 	// This is always a safe call because the base class always creates the default view in the constructor
 	osgViewer::ViewerBase::Views views;
@@ -708,7 +743,7 @@ bool AppXMLApplicator::operator ()(const ApplicationConfigData& data, dtABC::App
 
    //set the default log level for all future Log instances
    dtUtil::Log::SetDefaultLogLevel(dtUtil::Log::GetLogLevelForString(data.GLOBAL_LOG_LEVEL));
-   
+
    //Also set the level for any existing Log instances
    dtUtil::Log::SetAllLogLevels(dtUtil::Log::GetLogLevelForString(data.GLOBAL_LOG_LEVEL));
 
@@ -805,7 +840,7 @@ bool AppXMLApplicator::operator ()(const ApplicationConfigData& data, dtABC::App
    return valid;
 }
 ////////////////////////////////////////////////////////
-void Application::AddView(dtCore::View &view)
+void Application::AddView(dtCore::View& view)
 {
    if (mCompositeViewer.valid() == false)
    {

@@ -17,10 +17,11 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  */
+
 /**
   * Description: Modified to integrate with VR ToolKits.
   * Author: Patrick O'Leary
-  * Date: April 12, 2010
+  * Date: September 29, 2012
   *
   */
 
@@ -37,7 +38,7 @@
 #include <string>
 #include <map>
 
-///@cond
+///@cond IGNORE
 namespace osgViewer
 {
    class CompositeViewer;
@@ -84,29 +85,32 @@ namespace dtABC
 
    public:
       /**
-       * Configuration property.
+       * ConfigProperty <tt>"System.SimFrameRate"</tt>.
        * <br>
        * Sets the fixed simulated frame rate of the system. This only matters if a fixed time step
        * is used.
        * @see dtCore::System
+       * @see GetConfigPropertyValue();
+       * @see USE_FIXED_TIME_STEP
        */
       static const std::string SIM_FRAME_RATE;
 
       /**
-       * Configuration property.
+       * ConfigProperty <tt>"System.MaxTimeBetweenDraws"</tt>.
        * <br>
        * When using a fixed time step, it is possible that the time required to simulate could be
        * so great that the system would never have time to draw a frame.  This time is used an as
        * override so that it be guaranteed to at least draw a frame every so often.  This time is a
        * floating point number in seconds.
        * @see dtCore::System
+       * @see GetConfigPropertyValue();
        */
       static const std::string MAX_TIME_BETWEEN_DRAWS;
 
       /**
-       * Configuration property.
+       * ConfigProperty <tt>"System.UseFixedTimeStep"</tt>.
        * <br>
-       * Set to true or false.
+       * Set to <tt>"true"</tt> or <tt>"false"</tt>.
        * <br>
        * This value defaults to false, which will make the delta time be equivalent to the time since the
        * beginning of the last frame times the current time scale. If this is set to true, the delta
@@ -114,28 +118,33 @@ namespace dtABC
        * physics, and other time-based calculations deterministic.  They also won't suffer from
        * anomalies that occur with frame hiccups.
        * @see dtCore::System
+       * @see GetConfigPropertyValue();
        */
       static const std::string USE_FIXED_TIME_STEP;
 
       /**
-       * Configuration property
+       * ConfigProperty <tt>"ThreadPool.NumWorkerThreads"</tt>.
        * <br>
-       * Set to the number of worker threads requested for the global ThreadPool service in dtUtil
+       * Set to the number of worker threads requested for the global ThreadPool service in dtUtil.
+       * If set to <tt>"OFF"</tt>, no ThreadPool threads will be created.
        * <br>
        *
        * The default is to just call the thread pool init with default settings.
        * @see dtUtil::ThreadPool
+       * @see GetConfigPropertyValue();
        */
       static const std::string NUM_WORKER_THREADS;
- /**
+
+      /**
        * Description: Application - Original Constructor.
        *
        * @param configFilename - const std::string& name of configuration file
        * @param win - dtCore::DeltaWin* the DeltaWin
        * Modified to set enableVRToolKit to false
        * Author: Patrick O'Leary
-       * Date: April 12, 2010
+       * Date: September 29, 2012
        */
+
       Application(const std::string& configFilename = "", dtCore::DeltaWin* win = NULL);
 
       /**
@@ -146,8 +155,9 @@ namespace dtABC
        * @param win - dtCore::DeltaWin* the DeltaWin
        * Created
        * Author: Patrick O'Leary
-       * Date: April 12, 2010
+       * Date: September 29, 2012
        */
+
       Application(bool _enableVRToolKit, const std::string& configFilename = "", dtCore::DeltaWin* win = NULL);
 
       ///Start the Application
@@ -235,7 +245,12 @@ namespace dtABC
       /// the publicized default settings for a generated config file.
       static ApplicationConfigData GetDefaultConfigData();
 
-      /// @return a string value that is paired with the given name.  The default is returned if the property is not set.
+      /**
+        * Get a ConfigProperty value by name.
+        * @param name The name of the value to look for
+        * @param defaultValue The default value to use if name isn't found
+        * @return a string value that is paired with the given name.  The default is returned if the property is not set.
+       */
       const std::string& GetConfigPropertyValue(const std::string& name, const std::string& defaultValue = "") const;
 
       /// Sets the value of a given config property.
@@ -243,6 +258,9 @@ namespace dtABC
 
       /// Removes a property with the given name
       void RemoveConfigPropertyValue(const std::string& name);
+
+      /// Returns whether a config property exists or not
+      bool IsConfigPropertyDefined(const std::string& name) const;
 
       /// Add a view to the Viewer
       void AddView(dtCore::View& view);
@@ -270,13 +288,15 @@ namespace dtABC
 
       /// @return the instance of the osgViewer::CompositeViewer
       osgViewer::CompositeViewer* GetCompositeViewer() { return mCompositeViewer.get(); }
+
       /*
        * Description GetRootNode - Return the root node of the delta3d composite viewer to enable integration with VR ToolKits.
        *
        * @return osg::Group* - root node of delta3d composite viewer.
        * Author: Patrick O'Leary
-       * Date: April 12, 2010
+       * Date: September 29, 2012
        */
+
       osg::Group* GetRootNode(void);
 
    protected:
@@ -294,8 +314,9 @@ namespace dtABC
        * @param deltaSimTime - const double deltaSimTime change in simulation time.
        * Modified to set enableVRToolKit to false
        * Author: Patrick O'Leary
-       * Date: April 12, 2010
+       * Date: September 29, 2012
        */
+
       virtual void Frame(const double deltaSimTime);
 
       ///override for postframe
@@ -311,8 +332,9 @@ namespace dtABC
        * @param configData - const ApplicationConfigData&
        * Modified
        * Author: Patrick O'Leary
-       * Date: April 12, 2010
+       * Date: September 29, 2012
        */
+
       virtual void CreateInstances(const ApplicationConfigData& configData);/*const std::string& name = "defaultWin", int x = 100, int y = 100,
          int width = 640, int height = 480, bool cursor = true, bool fullScreen = false, bool realizeUponCreate = true);*/
 
@@ -361,8 +383,9 @@ namespace dtABC
        *
        * Created
        * Author: Patrick O'Leary
-       * Date: April 12, 2010
+       * Date: September 29, 2012
        */
+
       bool enableVRToolKit;
 
    };
